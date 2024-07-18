@@ -34,6 +34,34 @@ module Resources
           error!('Something went wrong!', 500)
         end
       end
+
+      resource :sale_inventory do
+        route_param :location_id, type: Integer do
+          params do
+            optional :from, type: String, regexp: /^\d{4}-\d{2}-\d{2}$/
+            optional :to, type: String, regexp: /\d{4}-\d{2}-\d{2}/
+          end
+          get do
+            store = StoreLocation.find(params[:location_id])
+            inventory = store.all_inventory
+            if params[:from] && params[:to]
+              date_from = Date.parse(params[:from]).beginning_of_day
+              date_to = Date.parse(params[:to]).end_of_day
+              sales = store.sales_between_dates(date_from, date_to)
+            else
+              sales = store.all_sales
+            end
+            response = {
+              total_sales: ActionController::Base.helpers.number_to_currency(sales),
+              inventory: inventory              
+            }
+            present response, with: Entities::V1::SaleEntity::SaleInventory
+          rescue StandardError => e
+            Rails.logger.error(e.full_message)
+            error!('Something went wrong!', 500)
+          end
+        end
+      end
     end
   end
 end
