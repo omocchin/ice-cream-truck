@@ -9,7 +9,7 @@ class StoreLocation < ApplicationRecord
     item_categories.includes(:items).map do |category|
       {
         category_name: category.name,
-        items: category.items.map { |item| { name: item.name, quantity: item.quantity } }
+        items: category.items.map { |item| { id: item.id, name: item.name, quantity: item.quantity } }
       }
     end
   end
